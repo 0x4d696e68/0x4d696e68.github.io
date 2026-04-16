@@ -3,96 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>E-Reader Optimized</title>
+    <title>E-Reader Sharp Black</title>
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --border-width: 2px;
+            --bg: #ffffff;
+            --text: #000000;
+            --border: 2px solid #000;
             --header-h: 50px;
-            --footer-h: 60px;
+            --footer-h: 75px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, sans-serif; overflow: hidden;
+            background: var(--bg); color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif; overflow: hidden;
             display: flex; flex-direction: column;
         }
 
-        /* Header */
+        /* 1. Header */
         header {
             height: var(--header-h); display: flex; align-items: center;
-            padding: 0 8px; border-bottom: var(--border-width) solid #000;
-            gap: 6px; flex-shrink: 0; background: #fff; z-index: 100;
+            padding: 0 8px; border-bottom: var(--border);
+            gap: 6px; background: #fff; z-index: 100;
         }
-        input { flex: 1; height: 32px; border: var(--border-width) solid #000; padding: 0 8px; font-size: 14px; }
+        input { flex: 1; height: 32px; border: var(--border); padding: 0 8px; font-size: 14px; outline: none; }
+        .btn-ui { width: 34px; height: 34px; border: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
 
-        /* Main Area */
+        /* 2. Main Content Area */
         main { flex-grow: 1; position: relative; overflow: hidden; }
 
         #home-screen {
-            position: absolute; inset: 0; background: #fff; z-index: 10;
+            position: absolute; inset: 0; background: #fff; z-index: 20;
             padding: 12px; overflow-y: auto;
         }
 
-        /* Grid Bookmark nhỏ gọn như v1 */
+        /* Bookmark Grid nhỏ gọn (v1 style) */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 10px; 
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
+            gap: 8px; 
         }
         .card {
-            border: var(--border-width) solid #000; padding: 8px;
-            text-align: center; font-size: 13px; font-weight: bold;
-            cursor: pointer; background: #fff; min-height: 50px;
-            display: flex; align-items: center; justify-content: center;
+            border: var(--border); padding: 5px; text-align: center;
+            font-size: 11px; font-weight: bold; cursor: pointer;
+            background: #fff; min-height: 45px; display: flex;
+            align-items: center; justify-content: center;
             box-shadow: 2px 2px 0 #000;
         }
-        .card:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #000; }
 
-        /* Viewer & Iframe */
         #viewer-screen { display: none; width: 100%; height: 100%; position: relative; }
         
-        #iframe-container {
+        /* CÔNG NGHỆ ÉP CHỮ ĐEN NHƯNG RÕ NÉT */
+        #iframe-wrapper {
             width: 100%; height: 100%; overflow: hidden; position: relative;
+            /* grayscale: bỏ màu, brightness: hạ độ sáng để chữ xám thành đen, contrast: tăng nhẹ để tách bạch chữ và nền */
+            filter: grayscale(1) brightness(0.7) contrast(1.8);
+            /* Giúp font chữ hiển thị sắc nét hơn trên trình duyệt */
+            text-rendering: optimizeLegibility;
         }
         
         iframe {
-            width: 100%; 
-            height: 1000000px; /* Chiều cao giả định cực lớn */
-            border: none; position: absolute; top: 0; left: 0;
-            background: #fff;
+            width: 100%; height: 1000000px; border: none;
+            position: absolute; top: 0; left: 0; background: #fff;
         }
 
-        /* Footer Buttons */
+        /* 3. Footer điều hướng 1 tay (Không đè chữ) */
         footer {
-            height: var(--footer-h); display: none;
-            border-top: var(--border-width) solid #000; background: #fff;
+            height: var(--footer-h);
+            display: none; 
+            border-top: var(--border);
+            background: #fff;
+            justify-content: flex-end; /* Nút nằm bên phải */
+            align-items: center;
+            padding: 0 20px;
+            gap: 20px;
         }
+
         .nav-btn {
-            flex: 1; border: none; background: transparent;
-            font-size: 18px; font-weight: bold; cursor: pointer;
+            width: 55px; height: 55px; border-radius: 50%;
+            border: var(--border); background: #fff;
+            font-size: 22px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 4px 4px 0 #000;
         }
-        .nav-btn:first-child { border-right: var(--border-width) solid #000; }
-        .nav-btn:active { background: #000; color: #fff; }
+        .nav-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
 
-        .btn-ui {
-            width: 34px; height: 34px; border: var(--border-width) solid #000;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
-
-        /* Fullscreen tweak */
-        :fullscreen header, :fullscreen footer { display: none; }
-        :fullscreen main { height: 100vh; }
+        /* Fullscreen: Tối ưu không gian đọc */
+        :fullscreen header { display: none; }
+        :fullscreen main { height: calc(100vh - var(--footer-h)); }
     </style>
 </head>
 <body>
 
 <header>
     <div class="btn-ui" onclick="showHome()">🏠</div>
-    <input type="text" id="urlInput" placeholder="Địa chỉ web...">
+    <input type="text" id="urlInput" placeholder="URL...">
     <div class="btn-ui" onclick="loadWeb()">Go</div>
     <div class="btn-ui" onclick="toggleFS()">⛶</div>
     <div class="btn-ui" onclick="addBM()">⭐</div>
@@ -100,20 +106,21 @@
 
 <main>
     <div id="home-screen">
-        <h4 style="margin: 0 0 10px 0;">THƯ VIỆN</h4>
+        <h5 style="margin: 0 0 10px 0;">THƯ VIỆN</h5>
         <div class="grid" id="bm-grid"></div>
     </div>
 
     <div id="viewer-screen">
-        <div id="iframe-container">
+        <div id="iframe-wrapper">
             <iframe src="" id="web-frame"></iframe>
         </div>
     </div>
 </main>
 
 <footer id="main-footer">
-    <button class="nav-btn" onclick="prevPage()"> Trang trước </button>
-    <button class="nav-btn" onclick="nextPage()"> Trang sau </button>
+    <div id="page-label" style="margin-right: auto; font-size: 12px; font-weight: bold;">P. 1</div>
+    <button class="nav-btn" onclick="prevPage()">↑</button>
+    <button class="nav-btn" onclick="nextPage()">↓</button>
 </footer>
 
 <script>
@@ -123,23 +130,19 @@
     const home = document.getElementById('home-screen');
     const viewer = document.getElementById('viewer-screen');
     const footer = document.getElementById('main-footer');
+    const label = document.getElementById('page-label');
 
     let currentPage = 0;
-
-    // Danh sách mặc định
     const DEFAULT_BM = [
         { title: 'WikiCV', url: 'https://wikicv.net' },
         { title: 'Wikipedia', url: 'https://vi.m.wikipedia.org' }
     ];
 
     window.onload = () => {
-        if (!localStorage.getItem('bms_v3')) {
-            localStorage.setItem('bms_v3', JSON.stringify(DEFAULT_BM));
-        }
+        if (!localStorage.getItem('bms_v6')) localStorage.setItem('bms_v6', JSON.stringify(DEFAULT_BM));
         renderBM();
     };
 
-    // TỰ ĐỘNG CUỘN LÊN ĐẦU KHI NHẤN LINK TRONG IFRAME
     frame.onload = () => {
         if (frame.src !== "about:blank" && frame.src !== "") {
             currentPage = 0;
@@ -148,7 +151,7 @@
     };
 
     function renderBM() {
-        const bms = JSON.parse(localStorage.getItem('bms_v3'));
+        const bms = JSON.parse(localStorage.getItem('bms_v6'));
         grid.innerHTML = '';
         bms.forEach((b, i) => {
             const div = document.createElement('div');
@@ -164,10 +167,8 @@
         let target = url || input.value;
         if (!target) return;
         if (!target.startsWith('http')) target = 'https://' + target;
-        
         input.value = target;
         frame.src = target;
-        
         home.style.display = 'none';
         viewer.style.display = 'block';
         footer.style.display = 'flex';
@@ -184,16 +185,13 @@
     function prevPage() { if (currentPage > 0) currentPage--; updateView(); }
 
     function updateView() {
-        const viewH = document.getElementById('iframe-container').offsetHeight;
-        
-        /* Gối đầu (Overlap): Cuộn ít hơn 40px so với chiều cao vùng nhìn.
-           40px đủ để đảm bảo bất kỳ dòng chữ nào bị cắt ở cuối trang cũ
-           sẽ luôn hiện đầy đủ ở đầu trang mới.
-        */
-        const overlap = 40; 
+        const viewH = document.getElementById('iframe-wrapper').offsetHeight;
+        // Overlap 50px (khoảng 2-3 dòng chữ) để đảm bảo không mất chữ khi lật trang
+        const overlap = 50; 
         const offset = currentPage * (viewH - overlap);
         
         frame.style.top = -offset + "px";
+        label.innerText = "P. " + (currentPage + 1);
         window.scrollTo(0,0);
     }
 
@@ -202,17 +200,17 @@
         if (!url) return;
         const title = prompt("Tên dấu trang:", "Trang mới");
         if (title) {
-            let bms = JSON.parse(localStorage.getItem('bms_v3'));
+            let bms = JSON.parse(localStorage.getItem('bms_v6'));
             bms.push({title, url});
-            localStorage.setItem('bms_v3', JSON.stringify(bms));
+            localStorage.setItem('bms_v6', JSON.stringify(bms));
             renderBM();
         }
     }
 
     function deleteBM(index) {
-        let bms = JSON.parse(localStorage.getItem('bms_v3'));
+        let bms = JSON.parse(localStorage.getItem('bms_v6'));
         bms.splice(index, 1);
-        localStorage.setItem('bms_v3', JSON.stringify(bms));
+        localStorage.setItem('bms_v6', JSON.stringify(bms));
         renderBM();
     }
 
@@ -223,7 +221,6 @@
 
     window.onresize = updateView;
 
-    // Phím cứng chuyển trang
     document.addEventListener('keydown', (e) => {
         if (e.key === "PageDown" || e.key === "ArrowRight") nextPage();
         if (e.key === "PageUp" || e.key === "ArrowLeft") prevPage();
