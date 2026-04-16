@@ -184,6 +184,40 @@
                     link.onclick = (e) => { e.preventDefault(); fetchContent(href); };
                 }
             });
+			
+			// Xử lý tất cả các Form để tải trong app
+			contentArea.querySelectorAll('form').forEach(form => {
+				form.onsubmit = (e) => {
+					e.preventDefault(); // Chặn trình duyệt load lại trang
+			
+					// 1. Lấy phương thức (GET hoặc POST) và URL đích
+					const method = (form.getAttribute('method') || 'GET').toUpperCase();
+					let action = form.getAttribute('action') || target; // target là URL hiện tại
+			
+					// 2. Xử lý URL tương đối/tuyệt đối (giống logic thẻ <a> của bạn)
+					if (action.startsWith('/')) action = baseURL + action;
+					else if (!action.startsWith('http')) {
+						const p = target.split('/'); p.pop(); action = p.join('/') + '/' + action;
+					}
+			
+					// 3. Thu thập dữ liệu từ các input trong form
+					const formData = new FormData(form);
+					const params = new URLSearchParams(formData).toString();
+			
+					if (method === 'GET') {
+						// Nếu là GET, nối query string vào URL
+						const finalURL = action.includes('?') ? `${action}&${params}` : `${action}?${params}`;
+						fetchContent(finalURL);
+					} else {
+						// Nếu là POST, bạn cần truyền thêm tham số vào hàm fetchContent của bạn
+						// Giả sử fetchContent(url, options) hỗ trợ nhận object cấu hình:
+						fetchContent(action, {
+							method: 'POST',
+							body: formData
+						});
+					}
+				};
+			});
 
             currentPage = 0;
             home.style.display = 'none';
