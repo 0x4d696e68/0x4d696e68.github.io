@@ -3,234 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>E-Reader Dashboard</title>
+    <title>E-Reader Optimized</title>
     <style>
         :root {
             --bg-color: #ffffff;
             --text-color: #000000;
             --border-width: 2px;
-            --header-height: 60px;
+            --header-h: 50px;
+            --footer-h: 60px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: var(--bg-color); color: var(--text-color);
-            font-family: system-ui, -apple-system, sans-serif;
-            overflow: hidden;
+            font-family: -apple-system, sans-serif; overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
-        /* Header chuyên nghiệp hơn */
+        /* Header */
         header {
-            height: var(--header-height);
-            display: flex; align-items: center;
-            padding: 0 15px;
-            border-bottom: var(--border-width) solid var(--text-color);
-            gap: 10px;
-            background: #fff;
-            z-index: 100;
+            height: var(--header-h); display: flex; align-items: center;
+            padding: 0 8px; border-bottom: var(--border-width) solid #000;
+            gap: 6px; flex-shrink: 0; background: #fff; z-index: 100;
         }
+        input { flex: 1; height: 32px; border: var(--border-width) solid #000; padding: 0 8px; font-size: 14px; }
 
-        header input {
-            flex: 1; height: 40px; border: var(--border-width) solid var(--text-color);
-            padding: 0 12px; font-size: 16px; outline: none;
-        }
+        /* Main Area */
+        main { flex-grow: 1; position: relative; overflow: hidden; }
 
-        .btn {
-            height: 40px; padding: 0 15px;
-            border: var(--border-width) solid var(--text-color);
-            background: #fff; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn:active { background: #000; color: #fff; }
-
-        /* Màn hình chính - Bookmark Grid */
         #home-screen {
-            position: absolute; top: var(--header-height); bottom: 0; left: 0; right: 0;
-            padding: 20px; overflow-y: auto; background: var(--bg-color);
-            z-index: 10;
+            position: absolute; inset: 0; background: #fff; z-index: 10;
+            padding: 12px; overflow-y: auto;
         }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
+        /* Grid Bookmark nhỏ gọn như v1 */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 10px; 
         }
+        .card {
+            border: var(--border-width) solid #000; padding: 8px;
+            text-align: center; font-size: 13px; font-weight: bold;
+            cursor: pointer; background: #fff; min-height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 2px 2px 0 #000;
+        }
+        .card:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #000; }
 
-        .bookmark-card {
-            border: var(--border-width) solid var(--text-color);
-            padding: 20px 10px;
-            text-align: center;
-            cursor: pointer;
-            background: #fff;
-            box-shadow: 4px 4px 0px #000;
-            word-break: break-all;
-            display: flex; flex-direction: column; justify-content: center;
-            min-height: 100px;
+        /* Viewer & Iframe */
+        #viewer-screen { display: none; width: 100%; height: 100%; position: relative; }
+        
+        #iframe-container {
+            width: 100%; height: 100%; overflow: hidden; position: relative;
         }
-        .bookmark-card:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
-        .bookmark-card .title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
-        .bookmark-card .url { font-size: 11px; opacity: 0.6; }
-
-        /* Vùng hiển thị Web */
-        #viewer-screen {
-            position: absolute; top: var(--header-height); bottom: 0; left: 0; right: 0;
-            display: none; background: #fff;
-        }
-        #viewer-container {
-            position: relative; width: 100%; height: 100%; overflow: hidden;
-        }
-        #web-frame {
-            width: 100%; height: 300000px; /* Chiều cao cực lớn để phân trang */
+        
+        iframe {
+            width: 100%; 
+            height: 1000000px; /* Chiều cao giả định cực lớn */
             border: none; position: absolute; top: 0; left: 0;
+            background: #fff;
         }
 
-        /* Nút điều hướng */
-        .nav-controls {
-            position: fixed; bottom: 25px; right: 25px;
-            display: none; gap: 15px; z-index: 1000;
+        /* Footer Buttons */
+        footer {
+            height: var(--footer-h); display: none;
+            border-top: var(--border-width) solid #000; background: #fff;
         }
         .nav-btn {
-            width: 65px; height: 65px; border-radius: 50%;
-            border: 3px solid #000; background: #fff;
-            font-size: 28px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 5px 5px 0px #000;
+            flex: 1; border: none; background: transparent;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+        }
+        .nav-btn:first-child { border-right: var(--border-width) solid #000; }
+        .nav-btn:active { background: #000; color: #fff; }
+
+        .btn-ui {
+            width: 34px; height: 34px; border: var(--border-width) solid #000;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
 
-        .hidden { display: none !important; }
+        /* Fullscreen tweak */
+        :fullscreen header, :fullscreen footer { display: none; }
+        :fullscreen main { height: 100vh; }
     </style>
 </head>
 <body>
 
 <header>
-    <button class="btn" onclick="showHome()">🏠</button>
-    <input type="text" id="urlInput" placeholder="Nhập địa chỉ web...">
-    <button class="btn" onclick="loadWeb()">Go</button>
-    <button class="btn" onclick="addBookmark()">⭐</button>
+    <div class="btn-ui" onclick="showHome()">🏠</div>
+    <input type="text" id="urlInput" placeholder="Địa chỉ web...">
+    <div class="btn-ui" onclick="loadWeb()">Go</div>
+    <div class="btn-ui" onclick="toggleFS()">⛶</div>
+    <div class="btn-ui" onclick="addBM()">⭐</div>
 </header>
 
-<div id="home-screen">
-    <h2 style="margin-top:0">Thư viện của bạn</h2>
-    <div class="grid-container" id="bookmark-grid">
-        </div>
-</div>
-
-<div id="viewer-screen">
-    <div id="viewer-container">
-        <iframe src="" id="web-frame"></iframe>
+<main>
+    <div id="home-screen">
+        <h4 style="margin: 0 0 10px 0;">THƯ VIỆN</h4>
+        <div class="grid" id="bm-grid"></div>
     </div>
-</div>
 
-<div class="nav-controls" id="nav-controls">
-    <div class="nav-btn" onclick="prevPage()">←</div>
-    <div class="nav-btn" onclick="nextPage()">→</div>
-</div>
+    <div id="viewer-screen">
+        <div id="iframe-container">
+            <iframe src="" id="web-frame"></iframe>
+        </div>
+    </div>
+</main>
+
+<footer id="main-footer">
+    <button class="nav-btn" onclick="prevPage()"> Trang trước </button>
+    <button class="nav-btn" onclick="nextPage()"> Trang sau </button>
+</footer>
 
 <script>
-    const DEFAULT_BOOKMARKS = [
+    const frame = document.getElementById('web-frame');
+    const input = document.getElementById('urlInput');
+    const grid = document.getElementById('bm-grid');
+    const home = document.getElementById('home-screen');
+    const viewer = document.getElementById('viewer-screen');
+    const footer = document.getElementById('main-footer');
+
+    let currentPage = 0;
+
+    // Danh sách mặc định
+    const DEFAULT_BM = [
         { title: 'WikiCV', url: 'https://wikicv.net' },
         { title: 'Wikipedia', url: 'https://vi.m.wikipedia.org' }
     ];
 
-    let currentPage = 0;
-    const frame = document.getElementById('web-frame');
-    const input = document.getElementById('urlInput');
-    const grid = document.getElementById('bookmark-grid');
-    const homeScreen = document.getElementById('home-screen');
-    const viewerScreen = document.getElementById('viewer-screen');
-    const navControls = document.getElementById('nav-controls');
-
     window.onload = () => {
-        initBookmarks();
-        renderBookmarks();
+        if (!localStorage.getItem('bms_v3')) {
+            localStorage.setItem('bms_v3', JSON.stringify(DEFAULT_BM));
+        }
+        renderBM();
     };
 
-    function initBookmarks() {
-        if (!localStorage.getItem('bookmarks')) {
-            localStorage.setItem('bookmarks', JSON.stringify(DEFAULT_BOOKMARKS));
+    // TỰ ĐỘNG CUỘN LÊN ĐẦU KHI NHẤN LINK TRONG IFRAME
+    frame.onload = () => {
+        if (frame.src !== "about:blank" && frame.src !== "") {
+            currentPage = 0;
+            updateView();
         }
-    }
+    };
 
-    function renderBookmarks() {
-        const bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
+    function renderBM() {
+        const bms = JSON.parse(localStorage.getItem('bms_v3'));
         grid.innerHTML = '';
-        
-        bookmarks.forEach((b, index) => {
-            const card = document.createElement('div');
-            card.className = 'bookmark-card';
-            card.onclick = () => loadWeb(b.url);
-            card.oncontextmenu = (e) => { // Nhấn giữ để xóa
-                e.preventDefault();
-                if(confirm('Xóa bookmark này?')) deleteBookmark(index);
-            };
-            card.innerHTML = `
-                <div class="title">${b.title}</div>
-                <div class="url">${b.url.replace('https://', '')}</div>
-            `;
-            grid.appendChild(card);
+        bms.forEach((b, i) => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerText = b.title;
+            div.onclick = () => loadWeb(b.url);
+            div.oncontextmenu = (e) => { e.preventDefault(); if(confirm('Xóa?')) deleteBM(i); };
+            grid.appendChild(div);
         });
     }
 
     function loadWeb(url = null) {
-        let targetUrl = url || input.value;
-        if (!targetUrl) return;
-        if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
-
-        input.value = targetUrl;
-        frame.src = targetUrl;
-        currentPage = 0;
-        updateView();
-
-        // Chuyển UI sang chế độ đọc
-        homeScreen.classList.add('hidden');
-        viewerScreen.style.display = 'block';
-        navControls.style.display = 'flex';
+        let target = url || input.value;
+        if (!target) return;
+        if (!target.startsWith('http')) target = 'https://' + target;
+        
+        input.value = target;
+        frame.src = target;
+        
+        home.style.display = 'none';
+        viewer.style.display = 'block';
+        footer.style.display = 'flex';
     }
 
     function showHome() {
-        homeScreen.classList.remove('hidden');
-        viewerScreen.style.display = 'none';
-        navControls.style.display = 'none';
-        frame.src = ""; // Tiết kiệm tài nguyên
+        home.style.display = 'block';
+        viewer.style.display = 'none';
+        footer.style.display = 'none';
+        frame.src = 'about:blank';
     }
 
-    function addBookmark() {
-        const url = input.value;
-        if (!url) return;
-        
-        const title = prompt("Nhập tên gợi nhớ:", "Trang mới");
-        if (title) {
-            let bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
-            bookmarks.push({ title, url });
-            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-            renderBookmarks();
-        }
-    }
-
-    function deleteBookmark(index) {
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
-        bookmarks.splice(index, 1);
-        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-        renderBookmarks();
-    }
-
-    // Phân trang
     function nextPage() { currentPage++; updateView(); }
     function prevPage() { if (currentPage > 0) currentPage--; updateView(); }
 
     function updateView() {
-        const vh = document.getElementById('viewer-container').offsetHeight;
-        frame.style.top = -(currentPage * vh) + "px";
+        const viewH = document.getElementById('iframe-container').offsetHeight;
+        
+        /* Gối đầu (Overlap): Cuộn ít hơn 40px so với chiều cao vùng nhìn.
+           40px đủ để đảm bảo bất kỳ dòng chữ nào bị cắt ở cuối trang cũ
+           sẽ luôn hiện đầy đủ ở đầu trang mới.
+        */
+        const overlap = 40; 
+        const offset = currentPage * (viewH - overlap);
+        
+        frame.style.top = -offset + "px";
         window.scrollTo(0,0);
     }
 
-    // Phím cứng cho máy đọc sách (Nút âm lượng/Nút chuyển trang)
-    document.addEventListener('keydown', (e) => {
-        if (viewerScreen.style.display === 'block') {
-            if (e.key === "ArrowRight" || e.key === "PageDown") nextPage();
-            if (e.key === "ArrowLeft" || e.key === "PageUp") prevPage();
+    function addBM() {
+        const url = input.value;
+        if (!url) return;
+        const title = prompt("Tên dấu trang:", "Trang mới");
+        if (title) {
+            let bms = JSON.parse(localStorage.getItem('bms_v3'));
+            bms.push({title, url});
+            localStorage.setItem('bms_v3', JSON.stringify(bms));
+            renderBM();
         }
+    }
+
+    function deleteBM(index) {
+        let bms = JSON.parse(localStorage.getItem('bms_v3'));
+        bms.splice(index, 1);
+        localStorage.setItem('bms_v3', JSON.stringify(bms));
+        renderBM();
+    }
+
+    function toggleFS() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+
+    window.onresize = updateView;
+
+    // Phím cứng chuyển trang
+    document.addEventListener('keydown', (e) => {
+        if (e.key === "PageDown" || e.key === "ArrowRight") nextPage();
+        if (e.key === "PageUp" || e.key === "ArrowLeft") prevPage();
     });
 </script>
 
