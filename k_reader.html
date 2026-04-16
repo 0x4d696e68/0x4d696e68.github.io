@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>E-Reader Sharp Black</title>
+    <title>E-Reader Sharp Edition</title>
     <style>
         :root {
             --bg: #ffffff;
@@ -21,27 +21,28 @@
             display: flex; flex-direction: column;
         }
 
-        /* 1. Header */
+        /* 1. Header Công cụ */
         header {
             height: var(--header-h); display: flex; align-items: center;
             padding: 0 8px; border-bottom: var(--border);
             gap: 6px; background: #fff; z-index: 100;
         }
         input { flex: 1; height: 32px; border: var(--border); padding: 0 8px; font-size: 14px; outline: none; }
-        .btn-ui { width: 34px; height: 34px; border: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+        .btn-ui { width: 34px; height: 34px; border: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; background: #fff; }
 
-        /* 2. Main Content Area */
-        main { flex-grow: 1; position: relative; overflow: hidden; }
+        /* 2. Vùng hiển thị nội dung */
+        main { flex-grow: 1; position: relative; overflow: hidden; background: #fff; }
 
         #home-screen {
             position: absolute; inset: 0; background: #fff; z-index: 20;
             padding: 12px; overflow-y: auto;
         }
 
-        /* Bookmark Grid nhỏ gọn (v1 style) */
+        /* Bookmark Grid nhỏ gọn (v1) */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            grid-template-rows: repeat(auto-fill, minmax(160px, 1fr)); 
             gap: 8px; 
         }
         .card {
@@ -52,29 +53,38 @@
             box-shadow: 2px 2px 0 #000;
         }
 
-        #viewer-screen { display: none; width: 100%; height: 100%; position: relative; }
+        #viewer-screen { display: none; width: 100%; height: 100%; position: relative; background: #fff; }
         
-        /* CÔNG NGHỆ ÉP CHỮ ĐEN NHƯNG RÕ NÉT */
+        /* CÔNG NGHỆ ÉP NỀN TRẮNG & CHỮ ĐEN */
         #iframe-wrapper {
             width: 100%; height: 100%; overflow: hidden; position: relative;
-            /* grayscale: bỏ màu, brightness: hạ độ sáng để chữ xám thành đen, contrast: tăng nhẹ để tách bạch chữ và nền */
-            filter: grayscale(1) brightness(0.7) contrast(1.8);
-            /* Giúp font chữ hiển thị sắc nét hơn trên trình duyệt */
+            background: #fff !important;
+			color: #000 !important;
+            
+            /* Bộ lọc: 
+               grayscale(1): Loại bỏ mọi màu sắc.
+               brightness(1.1): Làm sáng các vùng xám nhạt để ép về màu trắng.
+               contrast(2): Đẩy mạnh độ tương phản để chữ xám đậm thành đen đặc #000.
+			   filter: grayscale(1) brightness(1) contrast(1);
+            */
+            
             text-rendering: optimizeLegibility;
         }
         
         iframe {
             width: 100%; height: 1000000px; border: none;
-            position: absolute; top: 0; left: 0; background: #fff;
+            position: absolute; top: 0; left: 0; 
+            background: #fff !important;
+			color: #000 !important;
         }
 
-        /* 3. Footer điều hướng 1 tay (Không đè chữ) */
+        /* 3. Footer điều hướng (Góc phải, không đè chữ) */
         footer {
             height: var(--footer-h);
             display: none; 
             border-top: var(--border);
             background: #fff;
-            justify-content: flex-end; /* Nút nằm bên phải */
+            justify-content: flex-end; 
             align-items: center;
             padding: 0 20px;
             gap: 20px;
@@ -89,7 +99,7 @@
         }
         .nav-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
 
-        /* Fullscreen: Tối ưu không gian đọc */
+        /* Fullscreen tweak */
         :fullscreen header { display: none; }
         :fullscreen main { height: calc(100vh - var(--footer-h)); }
     </style>
@@ -97,11 +107,11 @@
 <body>
 
 <header>
-    <div class="btn-ui" onclick="showHome()">🏠</div>
+    <div class="btn-ui" onclick="showHome()">H</div>
     <input type="text" id="urlInput" placeholder="URL...">
     <div class="btn-ui" onclick="loadWeb()">Go</div>
     <div class="btn-ui" onclick="toggleFS()">⛶</div>
-    <div class="btn-ui" onclick="addBM()">⭐</div>
+    <div class="btn-ui" onclick="addBM()">BM</div>
 </header>
 
 <main>
@@ -118,7 +128,7 @@
 </main>
 
 <footer id="main-footer">
-    <div id="page-label" style="margin-right: auto; font-size: 12px; font-weight: bold;">P. 1</div>
+    <div id="page-label" style="margin-right: auto; font-size: 12px; font-weight: bold;">Trang 1</div>
     <button class="nav-btn" onclick="prevPage()">↑</button>
     <button class="nav-btn" onclick="nextPage()">↓</button>
 </footer>
@@ -139,10 +149,11 @@
     ];
 
     window.onload = () => {
-        if (!localStorage.getItem('bms_v6')) localStorage.setItem('bms_v6', JSON.stringify(DEFAULT_BM));
+        if (!localStorage.getItem('bms_v7')) localStorage.setItem('bms_v7', JSON.stringify(DEFAULT_BM));
         renderBM();
     };
 
+    // Khi chuyển link, tự động về đầu trang
     frame.onload = () => {
         if (frame.src !== "about:blank" && frame.src !== "") {
             currentPage = 0;
@@ -151,14 +162,14 @@
     };
 
     function renderBM() {
-        const bms = JSON.parse(localStorage.getItem('bms_v6'));
+        const bms = JSON.parse(localStorage.getItem('bms_v7'));
         grid.innerHTML = '';
         bms.forEach((b, i) => {
             const div = document.createElement('div');
             div.className = 'card';
             div.innerText = b.title;
             div.onclick = () => loadWeb(b.url);
-            div.oncontextmenu = (e) => { e.preventDefault(); if(confirm('Xóa?')) deleteBM(i); };
+            div.oncontextmenu = (e) => { e.preventDefault(); if(confirm('Xóa bookmark này?')) deleteBM(i); };
             grid.appendChild(div);
         });
     }
@@ -186,12 +197,11 @@
 
     function updateView() {
         const viewH = document.getElementById('iframe-wrapper').offsetHeight;
-        // Overlap 50px (khoảng 2-3 dòng chữ) để đảm bảo không mất chữ khi lật trang
         const overlap = 50; 
         const offset = currentPage * (viewH - overlap);
         
         frame.style.top = -offset + "px";
-        label.innerText = "P. " + (currentPage + 1);
+        label.innerText = "Trang " + (currentPage + 1);
         window.scrollTo(0,0);
     }
 
@@ -200,17 +210,17 @@
         if (!url) return;
         const title = prompt("Tên dấu trang:", "Trang mới");
         if (title) {
-            let bms = JSON.parse(localStorage.getItem('bms_v6'));
+            let bms = JSON.parse(localStorage.getItem('bms_v7'));
             bms.push({title, url});
-            localStorage.setItem('bms_v6', JSON.stringify(bms));
+            localStorage.setItem('bms_v7', JSON.stringify(bms));
             renderBM();
         }
     }
 
     function deleteBM(index) {
-        let bms = JSON.parse(localStorage.getItem('bms_v6'));
+        let bms = JSON.parse(localStorage.getItem('bms_v7'));
         bms.splice(index, 1);
-        localStorage.setItem('bms_v6', JSON.stringify(bms));
+        localStorage.setItem('bms_v7', JSON.stringify(bms));
         renderBM();
     }
 
