@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deep Reader - Fix Missing Content</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #000000;
+            --border: 2px solid #000;
+            --header-h: 50px;
+            --footer-h: 75px;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: var(--bg); color: var(--text);
+            font-family: serif; overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            height: var(--header-h); display: flex; align-items: center;
+            padding: 0 8px; border-bottom: var(--border);
+            gap: 6px; background: #fff; z-index: 100; flex-shrink: 0;
+        }
+        input { flex: 1; height: 32px; border: var(--border); padding: 0 8px; font-size: 14px; outline: none; }
+        .btn-ui { width: 34px; height: 34px; border: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; background: #fff; }
+
+        /* Main Area */
+        main { flex-grow: 1; position: relative; overflow: hidden; background: #fff; }
+
+        #home-screen {
+            position: absolute; inset: 0; background: #fff; z-index: 20;
+            padding: 12px; overflow-y: auto;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+        .card {
+            border: var(--border); padding: 5px; text-align: center; font-size: 11px;
+            font-weight: bold; cursor: pointer; background: #fff; min-height: 45px;
+            display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 0 #000;
+        }
+
+        #reader-screen {
+            display: none; width: 100%; height: 100%; 
+            overflow: hidden; position: relative;
+        }
+
+        /* Chữ đen #000, nền trắng tuyệt đối */
+        #content-area {
+            width: 100%; padding: 20px; line-height: 1.7; font-size: 20px;
+            position: absolute; top: 0; left: 0; transition: top 0.2s ease-out;
+        }
+
+        #content-area, #content-area * {
+            color: #000000 !important;
+            background-color: transparent !important;
+            max-width: 100% !important;
+        }
+        
+        /* Hiển thị link rõ ràng để nhấn */
+        #content-area a {
+            border: 1px solid #000 !important;
+            padding: 2px 5px;
+            margin: 2px;
+            display: inline-block;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Footer lật trang */
+        footer {
+            height: var(--footer-h); display: none; border-top: var(--border);
+            background: #fff; justify-content: flex-end; align-items: center;
+            padding: 0 20px; gap: 20px; flex-shrink: 0;
+        }
+        .nav-btn {
+            width: 55px; height: 55px; border-radius: 50%; border: var(--border);
+            background: #fff; font-size: 22px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 0 #000;
+        }
+
+        #loader { 
+            display: none; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); z-index: 999; 
+            background: white; padding: 15px; border: 3px solid #000; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader">Đang tải...</div>
+
+<header>
+    <div class="btn-ui" onclick="showHome()">🏠</div>
+    <input type="text" id="urlInput" placeholder="Dán link truyện...">
+    <div class="btn-ui" onclick="fetchContent()">Go</div>
+    <div class="btn-ui" onclick="toggleFS()">⛶</div>
+    <div class="btn-ui" onclick="addBM()">⭐</div>
+</header>
+
+<main>
+    <div id="home-screen">
+        <h5 style="margin: 0 0 10px 0;">THƯ VIỆN</h5>
+        <div class="grid" id="bm-grid"></div>
+    </div>
+
+    <div id="reader-screen">
+        <div id="content-area"></div>
+    </div>
+</main>
+
+<footer id="main-footer">
+    <div id="page-label" style="margin-right: auto; font-size: 12px; font-weight: bold;">P. 1</div>
+    <button class="nav-btn" onclick="prevPage()">↑</button>
+    <button class="nav-btn" onclick="nextPage()">↓</button>
+</footer>
+
+<script>
+    const contentArea = document.getElementById('content-area');
+    const input = document.getElementById('urlInput');
+    const grid = document.getElementById('bm-grid');
+    const home = document.getElementById('home-screen');
+    const reader = document.getElementById('reader-screen');
+    const footer = document.getElementById('main-footer');
+    const loader = document.getElementById('loader');
+    const label = document.getElementById('page-label');
+
+    let currentPage = 0;
+    let currentBaseURL = "";
+    const BM_KEY = 'e_reader_bookmarks_v9';
+
+    const DEFAULT_BM = [
+        { title: 'WikiCV', url: 'https://wikicv.net' },
+        { title: 'Wikipedia', url: 'https://vi.wikipedia.org' }
+    ];
+
+    window.onload = () => {
+        const stored = localStorage.getItem(BM_KEY);
+        if (!stored) localStorage.setItem(BM_KEY, JSON.stringify(DEFAULT_BM));
+        renderBM();
+    };
+
+    async function fetchContent(url = null) {
+        let target = url || input.value;
+        if (!target) return;
+        if (!target.startsWith('http')) target = 'https://' + target;
+        
+        const urlObj = new URL(target);
+        currentBaseURL = urlObj.origin;
+
+        loader.style.display = 'block';
+        input.value = target;
+
+        try {
+            const proxyUrl = `https://dawn-sky-95e5.aulpixman.workers.dev/?url=${encodeURIComponent(target)}`;
+            const response = await fetch(proxyUrl);
+            const data = await response.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data, 'text/html');
+
+            // 1. Tìm vùng nội dung chính
+            let mainContent = doc.querySelector('article') || 
+                              doc.querySelector('#chapter-content') || 
+                              doc.querySelector('.book-wrapper') ||
+                              doc.querySelector('.content') || 
+                              doc.body;
+            
+            contentArea.innerHTML = `<h2>${doc.title}</h2>` + mainContent.innerHTML;
+            
+            // 2. Xóa sạch các thành phần gây nhiễu
+            const trash = contentArea.querySelectorAll('script, style, iframe, nav, footer, header, .ads, .sidebar, img');
+            trash.forEach(el => el.remove());
+
+            // 3. XỬ LÝ LINK (Quan trọng để đọc WikiCV)
+            const links = contentArea.querySelectorAll('a');
+            links.forEach(link => {
+                let href = link.getAttribute('href');
+                if (href) {
+                    // Chuyển thành link tuyệt đối
+                    if (href.startsWith('/')) href = currentBaseURL + href;
+                    else if (!href.startsWith('http')) {
+                        const parts = target.split('/');
+                        parts.pop();
+                        href = parts.join('/') + '/' + href;
+                    }
+                    
+                    // Gán sự kiện tải tiếp
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        fetchContent(href);
+                    };
+                }
+            });
+
+            // 4. Reset hiển thị
+            currentPage = 0;
+            home.style.display = 'none';
+            reader.style.display = 'block';
+            footer.style.display = 'flex';
+            updateView();
+
+        } catch (error) {
+            alert("Lỗi tải trang. Hãy kiểm tra kết nối.");
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    function showHome() {
+        home.style.display = 'block';
+        reader.style.display = 'none';
+        footer.style.display = 'none';
+    }
+
+    function nextPage() { currentPage++; updateView(); }
+    function prevPage() { if (currentPage > 0) currentPage--; updateView(); }
+
+    function updateView() {
+        const viewH = reader.offsetHeight;
+        const overlap = 60; 
+        const offset = currentPage * (viewH - overlap);
+        contentArea.style.top = -offset + "px";
+        label.innerText = "Trang " + (currentPage + 1);
+        window.scrollTo(0,0);
+    }
+
+    function renderBM() {
+        const bms = JSON.parse(localStorage.getItem(BM_KEY));
+        grid.innerHTML = '';
+        bms.forEach((b, i) => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerText = b.title;
+            div.onclick = () => fetchContent(b.url);
+            grid.appendChild(div);
+        });
+    }
+
+    function addBM() {
+        const url = input.value;
+        const title = prompt("Tên dấu trang:");
+        if (title && url) {
+            let bms = JSON.parse(localStorage.getItem(BM_KEY));
+            bms.push({title, url});
+            localStorage.setItem(BM_KEY, JSON.stringify(bms));
+            renderBM();
+        }
+    }
+
+    function toggleFS() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+</script>
+
+</body>
+</html>
