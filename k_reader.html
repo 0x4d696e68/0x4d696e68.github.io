@@ -208,13 +208,6 @@
 						// Nếu là GET, nối query string vào URL
 						const finalURL = action.includes('?') ? `${action}&${params}` : `${action}?${params}`;
 						fetchContent(finalURL);
-					} else {
-						// Nếu là POST, bạn cần truyền thêm tham số vào hàm fetchContent của bạn
-						// Giả sử fetchContent(url, options) hỗ trợ nhận object cấu hình:
-						fetchContent(action, {
-							method: 'POST',
-							body: formData
-						});
 					}
 				};
 			});
